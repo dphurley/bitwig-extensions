@@ -1,0 +1,3 @@
+rm ~/Documents/Bitwig\ Studio/Extensions/MIDITouchbar.bwextension
+mvn install
+cp target/MIDITouchbar.bwextension ~/Documents/Bitwig\ Studio/Extensions/
