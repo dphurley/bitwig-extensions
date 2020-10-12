@@ -1,5 +1,8 @@
-com/miditouchbar/MIDITouchbarExtension.class
-com/miditouchbar/devices/ValhallaDelay$1.class
 com/miditouchbar/MIDITouchbarExtensionDefinition.class
 com/miditouchbar/devices/ValhallaDelay.class
-com/miditouchbar/devices/ValhallaDelay$ParameterName.class
+com/miditouchbar/devices/ValhallaDelay$MappableParameters.class
+com/miditouchbar/devices/MappedParameter.class
+com/miditouchbar/MIDITouchbarExtension.class
+com/miditouchbar/devices/MappableDevice.class
+com/miditouchbar/devices/MappableParameter.class
+com/miditouchbar/devices/MappedParameterType.class

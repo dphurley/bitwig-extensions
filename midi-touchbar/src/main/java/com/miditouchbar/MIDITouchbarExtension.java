@@ -4,8 +4,11 @@ import com.bitwig.extension.api.util.midi.ShortMidiMessage;
 import com.bitwig.extension.callback.ShortMidiMessageReceivedCallback;
 import com.bitwig.extension.controller.api.*;
 import com.bitwig.extension.controller.ControllerExtension;
+import com.miditouchbar.devices.MappableDevice;
+import com.miditouchbar.devices.MappableParameter;
 import com.miditouchbar.devices.ValhallaDelay;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MIDITouchbarExtension extends ControllerExtension
@@ -15,9 +18,13 @@ public class MIDITouchbarExtension extends ControllerExtension
       super(definition, host);
    }
 
-   CursorTrack cursorTrack;
 
-   ValhallaDelay valhallaDelay;
+   List<MappableDevice> mappedDevices;
+   private void mapDevices(ControllerHost host, CursorTrack cursorTrack) {
+      this.mappedDevices = new ArrayList<>();
+      MappableDevice valhallaDelay = new ValhallaDelay(host, cursorTrack);
+      mappedDevices.add(valhallaDelay);
+   }
 
    @Override
    public void init()
@@ -25,29 +32,32 @@ public class MIDITouchbarExtension extends ControllerExtension
       final ControllerHost host = getHost();
 
       mTransport = host.createTransport();
-      host.getMidiInPort(0).setMidiCallback((ShortMidiMessageReceivedCallback)msg -> onMidi0(msg));
-      host.getMidiInPort(0).setSysexCallback((String data) -> onSysex0(data));
+      final MidiIn midiInPort = host.getMidiInPort(0);
+      midiInPort.setMidiCallback((ShortMidiMessageReceivedCallback) this::onMidi0);
+      midiInPort.setSysexCallback(this::onSysex0);
 
-      TrackBank mainTrackBank = host.createMainTrackBank(4, 0, 0);
+      TrackBank mainTrackBank = host.createMainTrackBank(1, 0, 0);
 
-      cursorTrack = host.createCursorTrack("cursor track", "cursor track", 0, 0, true);
-//      cursorTrack.pan().markInterested();
-//      cursorTrack.pan().setIndication(true);
-
-      valhallaDelay = new ValhallaDelay(host, cursorTrack);
-
+      CursorTrack cursorTrack = host.createCursorTrack("cursor track", "cursor track", 0, 0, true);
       mainTrackBank.followCursorTrack(cursorTrack);
 
-      // TODO: Perform your driver initialization here.
-      // For now just show a popup notification for verification that it is running.
+      mapDevices(host, cursorTrack);
 
+      // TODO this seems to have a performance issue with VSTs, will be nice to have in the future.
+//      final HardwareSurface midiTouchbarHardwareSurface = host.createHardwareSurface();
+//      final AbsoluteHardwareKnob firstSlider = midiTouchbarHardwareSurface.createAbsoluteHardwareKnob("SLIDER_1");
+//
+//      int midiChannel = 0; // MIDI channel 1
+//      firstSlider.setAdjustValueMatcher(midiInPort.createAbsoluteCCValueMatcher(midiChannel, 0));
+//      Parameter valhallaDelayMix = valhallaDelay.mappedParameters.get(ValhallaDelay.ParameterName.MIX);
+//      firstSlider.setBinding(valhallaDelayMix);
+
+      getHost().showPopupNotification("MIDI Touchbar Initialized");
    }
 
    @Override
    public void exit()
    {
-      // TODO: Perform any cleanup once the driver exits
-      // For now just show a popup notification for verification that it is no longer running.
       getHost().showPopupNotification("MIDI Touchbar Exited");
    }
 
@@ -58,20 +68,20 @@ public class MIDITouchbarExtension extends ControllerExtension
    }
 
    /** Called when we receive short MIDI message on port 0. */
-   private void onMidi0(ShortMidiMessage msg)
+   private void onMidi0(ShortMidiMessage midiMessage)
    {
-      int cc = msg.getData1();
-      int value = msg.getData2();
+      int midiChannel = midiMessage.getChannel();
+      int cc = midiMessage.getData1();
+      int value = midiMessage.getData2();
 
-      // set the mix value
-//      Parameter valhallaMix = valhallaDelay.mappedParameters.get(ValhallaDelay.ParameterName.MIX);
-//      valhallaMix.value().set(value, 128);
+      boolean acked;
+      for(MappableDevice mappedDevice : mappedDevices) {
+         acked = mappedDevice.setParameter(midiChannel, cc, value);
 
-      Parameter valhallaDelayStyle = valhallaDelay.mappedParameters.get(ValhallaDelay.ParameterName.DELAY_STYLE);
-      valhallaDelayStyle.value().set(value, 128);
-
-      Parameter valhallaDelayLMilliseconds = valhallaDelay.mappedParameters.get(ValhallaDelay.ParameterName.DELAY_L_MS);
-      valhallaDelayLMilliseconds.value().set(value, 128);
+         if(acked) {
+            return;
+         }
+      }
    }
 
    /** Called when we receive sysex MIDI message on port 0. */

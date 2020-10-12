@@ -1,2 +1,5 @@
 /Users/danny/workspace/MIDI Touchbar/src/main/java/com/miditouchbar/MIDITouchbarExtensionDefinition.java
+/Users/danny/workspace/MIDI Touchbar/src/main/java/com/miditouchbar/devices/MappableDevice.java
+/Users/danny/workspace/MIDI Touchbar/src/main/java/com/miditouchbar/devices/MappableParameter.java
 /Users/danny/workspace/MIDI Touchbar/src/main/java/com/miditouchbar/MIDITouchbarExtension.java
+/Users/danny/workspace/MIDI Touchbar/src/main/java/com/miditouchbar/devices/ValhallaDelay.java
